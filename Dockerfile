@@ -2,7 +2,7 @@
 FROM python:3.11.2-slim-buster
 
 # 작업 디렉토리 설정
-WORKDIR /app
+WORKDIR /django
 
 # 필요한 파일 복사
 COPY requirements.txt requirements.txt
