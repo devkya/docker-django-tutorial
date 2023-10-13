@@ -1,0 +1,4 @@
+# 이미지 빌드
+docker build --tag django-docker-tutorial .
+# 컨테이너 실행하고 8000:8000으로 host와  컨테이너 포트를 매핑
+docker run -p 8000:8000 django-docker-tutorial
