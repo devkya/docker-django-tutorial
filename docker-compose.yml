@@ -1,17 +1,12 @@
 version: '3.8'
 services:
-  app:
-    build: .
-    volumes:
-      - .:/django
-    ports:
-      - "8000:8000"
-    image: app:django
-    container_name: django_container
-    command: python manage.py runserver 0.0.0.0:8000
-    depends_on:
-      - db
-  
+
+  # Redis
+  redis:
+    image: redis:6.2.13-bookworm
+    container_name: redis
+
+  # Database postgresql
   db:
     image: postgres:15.4-alpine
     volumes:
@@ -23,3 +18,43 @@ services:
     ports:
       - "5432:5432"
     container_name: postgres_db
+
+  # Django app
+  backend:
+    build: .
+    volumes:
+      - .:/django
+    ports:
+      - "8000:8000" 
+    image: app:django
+    container_name: django_app
+    command: gunicorn core.wsgi --bind 0.0.0.0:8000
+    depends_on:
+      - db
+  
+  # Celery
+  celery:
+    restart: always
+    build: 
+      context: .
+    command: celery -A core worker -l INFO
+    volumes:
+      - .:/django
+    container_name: celery
+    depends_on:
+      - db
+      - redis
+      - backend
+  
+  # Nginx
+  nginx:
+    image: nginx:latest
+    ports: 
+      - 80:8080
+    volumes:
+      - ./nginx/nginx-setup.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - celery
+      - redis
+      
